@@ -35,7 +35,7 @@ module ManageIQ::CrossRepo
 
     def run_tests
       with_test_env do
-        system!({"TRAVIS_BUILD_DIR" => test_repo.path.to_s}, "bash", "tools/ci/before_install.sh") if ENV["CI"] && File.exist?("tools/ci/before_install.sh")
+        system!({"TRAVIS_BUILD_DIR" => test_repo.path.to_s}, "bash", "-l", "tools/ci/before_install.sh") if ENV["CI"] && File.exist?("tools/ci/before_install.sh")
         system!(env_vars, "bin/setup")
         system!(script_cmd)
       end
