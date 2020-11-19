@@ -83,6 +83,7 @@ module ManageIQ::CrossRepo
           RAILS_GEMS.each do |rails_gem|
             rails_gem_path = rails_repo.path
             rails_gem_path = File.join(rails_gem_path, rails_gem) unless rails_gem == "rails"
+            next unless Dir.exist?(rails_gem_path)
 
             content += "ensure_gem \"#{rails_gem}\", :path => \"#{rails_gem_path}\"\n"
           end
