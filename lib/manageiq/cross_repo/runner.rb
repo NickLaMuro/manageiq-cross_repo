@@ -61,6 +61,7 @@ module ManageIQ::CrossRepo
       exit($?.exitstatus) unless system(*args)
     end
 
+    RAILS_GEMS = %w[actioncable actionmailbox actionmailer actionpack actiontext actionview activejob activemodel activerecord activestorage activesupport rails railties]
     def generate_bundler_d
       bundler_d_path = core_repo.path.join("bundler.d")
       override_path  = bundler_d_path.join("overrides.rb")
@@ -75,24 +76,16 @@ module ManageIQ::CrossRepo
         end.join("\n")
 
         if ENV['RAILS_COMMIT']
+          rails_repo = Repository.new("rails/rails@#{ENV["RAILS_COMMIT"]}")
+          rails_repo.ensure_clone
+
           content += "\n\n"
-          content += <<~RAILS
-            git "https://github.com/rails/rails.git", :sha => "#{ENV["RAILS_COMMIT"]}" do
-              ensure_gem "actioncable"
-              ensure_gem "actionmailbox"
-              ensure_gem "actionmailer"
-              ensure_gem "actionpack"
-              ensure_gem "actiontext"
-              ensure_gem "actionview"
-              ensure_gem "activejob"
-              ensure_gem "activemodel"
-              ensure_gem "activerecord"
-              ensure_gem "activestorage"
-              ensure_gem "activesupport"
-              ensure_gem "rails"
-              ensure_gem "railties"
-            end
-          RAILS
+          RAILS_GEMS.each do |rails_gem|
+            rails_gem_path = rails_repo.path
+            rails_gem_path = File.join(rails_gem_path, rails_gem) unless rails_gem == "rails"
+
+            content += "ensure_gem \"#{rails_gem}\", :path => \"#{rails_gem_path}\"\n"
+          end
         end
 
         FileUtils.mkdir_p(bundler_d_path)
