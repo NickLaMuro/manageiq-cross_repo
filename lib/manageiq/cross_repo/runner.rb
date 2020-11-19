@@ -73,8 +73,29 @@ module ManageIQ::CrossRepo
           gem_name = gem.path.glob("*.gemspec")&.first&.basename(".gemspec") || gem.repo
           "ensure_gem \"#{gem_name}\", :path => \"#{gem.path}\""
         end.join("\n")
-        FileUtils.mkdir_p(bundler_d_path)
 
+        if ENV['RAILS_COMMIT']
+          content += "\n\n"
+          content += <<~RAILS
+            git "https://github.com/rails/rails.git", :sha => "#{ENV["RAILS_COMMIT"]}" do
+              ensure_gem "actioncable"
+              ensure_gem "actionmailbox"
+              ensure_gem "actionmailer"
+              ensure_gem "actionpack"
+              ensure_gem "actiontext"
+              ensure_gem "actionview"
+              ensure_gem "activejob"
+              ensure_gem "activemodel"
+              ensure_gem "activerecord"
+              ensure_gem "activestorage"
+              ensure_gem "activesupport"
+              ensure_gem "rails"
+              ensure_gem "railties"
+            end
+          RAILS
+        end
+
+        FileUtils.mkdir_p(bundler_d_path)
         File.write(override_path, content)
       end
     end
